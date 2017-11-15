@@ -78,11 +78,34 @@ const uploadFiles = (compilation) => {
   }))
 }
 
+// const uploadFile = (name, assetObj) => {
+//   return co(function *() {
+//     const uploadName = `${config.prefix}${name}`
+//     return yield store.put(uploadName, Buffer.from(assetObj.content))
+//   })
+// }
+
 const uploadFile = (name, assetObj) => {
-  return co(function *() {
-    const uploadName = `${config.prefix}${name}`
-    return yield store.put(uploadName, Buffer.from(assetObj.content))
-  })
+  let retryTimes = 2
+  const uploadStore = () => {
+    return co(function *() {
+      console.log('开始发送')
+      // if (~~(Math.random() * 10) > 8) {
+      //   console.log('retryTimes：' + retryTimes)
+      //   throw new Error('模拟错误重发')
+      // }
+      const uploadName = `${config.prefix}${name}`
+      return yield store.put(uploadName, Buffer.from(assetObj.content))
+    }).catch(e => {
+      // console.log(retryTimes)
+      if (retryTimes <= 0) {
+        return Promise.reject(e)
+      }
+      retryTimes--
+      return uploadStore()
+    })
+  }
+  return uploadStore()
 }
 
 const getAssetsFiles = ({assets}) => {
