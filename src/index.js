@@ -6,11 +6,11 @@ const red = chalk.red
 const green = chalk.bold.green
 
 const config = {
-  auth: {
-    accessKeyId: '',
-    accessKeySecret: '',
-    bucket: '',
-    region: ''
+  ossOptions: {
+    // accessKeyId: '',
+    // accessKeySecret: '',
+    // bucket: '',
+    // region: ''
   },
   prefix: '',
   exclude: /.*/,
@@ -26,10 +26,12 @@ const logInfo = (str) => {
 
 module.exports = class WebpackAliOSSPlugin {
   constructor (cfg) {
-    config.auth.accessKeyId = cfg.accessKeyId
-    config.auth.accessKeySecret = cfg.accessKeySecret
-    config.auth.bucket = cfg.bucket
-    config.auth.region = cfg.region
+    config.ossOptions = cfg.ossOptions
+    // config.ossOptions.accessKeyId = cfg.accessKeyId
+    // config.ossOptions.accessKeySecret = cfg.accessKeySecret
+    // config.ossOptions.bucket = cfg.bucket
+    // config.ossOptions.region = cfg.region
+    // config.ossOptions.internal = !!cfg.internal
     config.prefix = cfg.prefix.endsWith('/') ? cfg.prefix : `${cfg.prefix}/`
     config.exclude = cfg.exclude && cfg.exclude !== '' ? cfg.exclude : config.exclude
     config.ignoreError = cfg.ignoreError ? cfg.ignoreError : false
@@ -38,7 +40,7 @@ module.exports = class WebpackAliOSSPlugin {
   }
 
   apply (compiler) {
-    store = oss(config.auth)
+    store = oss(config.ossOptions)
     compiler.plugin('emit', (compilation, cb) => {
       uploadFiles(compilation)
         .then(() => {
@@ -89,15 +91,9 @@ const uploadFile = (name, assetObj) => {
   let retryTimes = 2
   const uploadStore = () => {
     return co(function *() {
-      console.log('开始发送')
-      // if (~~(Math.random() * 10) > 8) {
-      //   console.log('retryTimes：' + retryTimes)
-      //   throw new Error('模拟错误重发')
-      // }
       const uploadName = `${config.prefix}${name}`
       return yield store.put(uploadName, Buffer.from(assetObj.content))
     }).catch(e => {
-      // console.log(retryTimes)
       if (retryTimes <= 0) {
         return Promise.reject(e)
       }
