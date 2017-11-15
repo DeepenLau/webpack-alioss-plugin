@@ -48,8 +48,11 @@ webpackConfig.plugins.push(new AliOSSPlugin({
 * deleteMode: Whether or not delete file after the file uploaded succesfully.
   - true: delete
   - false: not delete
-  
+
 > CHANGELOG
+
+* 1.4.2
+	- Add feture.
 
 * 1.4.0
 	- Modify README descs.
